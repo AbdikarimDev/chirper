@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Chirp;
 use Illuminate\Http\Request;
 
 class ChirpController extends Controller
@@ -9,30 +10,15 @@ class ChirpController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+      public function index()
     {
-        $chirps = [
-            [
-                'Author' => 'Mohamed Ahemed',
-                'Message' => 'working with my first try',
-                'Time' => '1 Hour',
-            ],
-            [
-                'Author' => 'Abdikarim Mohamed',
-                'Message' => 'working with my second try',
-                'Time' => '2 Hour',
-            ],
-            [
-                'Author' => 'Ahmed Mohamed',
-                'Message' => 'working with my third try',
-                'Time' => '3 Hour',
-            ],
-        ];
+        $chirps = Chirp::with('user')
+            ->latest()
+            ->take(50)  // Limit to 50 most recent chirps
+            ->get();
 
         return view('home', ['chirps' => $chirps]);
-
-    }
-
+    } 
     /**
      * Show the form for creating a new resource.
      */
@@ -46,7 +32,16 @@ class ChirpController extends Controller
      */
     public function store(Request $request)
     {
-        //
+       // validate the request
+        $validated = $request->validate([
+            'message' => 'required|string|max:255|min:5'
+         ]);
+
+        //  create the chirp
+        Chirp::create([
+            'message' => $validated['message'],
+        ]);
+        return redirect('/')->with('success','chirp created');
     }
 
     /**
